@@ -1,0 +1,48 @@
+﻿@using System.Net.Http.Json
+@using HotelReservationSystem.Data
+@inject HotelReservationSystem.Services.IRoomService roomService
+@inject IDialogService DialogService
+
+@if (showOK)
+{
+    <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => Close())">Reservation successful</MudAlert>
+}
+<MudTable Items="@item" Hover="true" T="Room">
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Number of people</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Number of People">@context.NumberOfPeople</MudTd>
+        <MudButton @onclick="@((e) => RowClickEvent(context))" Variant="Variant.Filled" Color="Color.Primary">Reserve</MudButton>
+    </RowTemplate>
+</MudTable>
+
+@code  {
+
+    List<Room> item;
+    bool showOK { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        item = await Task.Run(() => roomService.GetRooms());
+    }
+
+    private async Task RowClickEvent(Room context)
+    {
+        var parameters = new DialogParameters { ["context"] = context };
+        var dialog = DialogService.Show<ReservationDialog>("Reserve room", parameters);
+
+        var result = await dialog.Result;
+
+        if ((bool)result.Data)
+            showOK = true;
+    }
+    private void Close()
+    {
+        showOK = false;
+    }
+    
+   
+}

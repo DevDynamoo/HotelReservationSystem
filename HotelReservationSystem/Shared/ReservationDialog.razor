@@ -1,0 +1,49 @@
+﻿@using System.Net.Http.Json
+@using HotelReservationSystem.Data
+@inject HotelReservationSystem.Services.IReservationService reservationService
+
+@if (showAlert)
+{
+    <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => Close())">Something went wrong. Please try again</MudAlert>
+}
+<MudDialog>
+    <DialogContent>
+        Room: @context.Name
+        <MudDatePicker Label="Date from" @bind-Date="dateFrom" />
+        <MudDatePicker Label="Date to" @bind-Date="dateTo" />
+        <MudNumericField @bind-Value="noOfPeople" Label="Number of people" Variant="Variant.Text"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Room context { get; set; } = null;
+
+    DateTime? dateTo { get; set; }
+    DateTime? dateFrom { get; set; }
+    int? noOfPeople { get; set; }
+    bool showAlert { get; set; } = false;
+
+    void Submit() {
+        try {
+            var reservation = new Reservation(dateTo.Value, dateFrom.Value, 4, 0);
+            reservationService.SaveReservation(reservation);
+            MudDialog.Close(DialogResult.Ok(true));
+
+            Console.WriteLine("EMAIL SENT TO test@admin.com FOR CREATED Reservation WITH ID " + reservation.Id);
+        } catch(Exception e) {
+            showAlert = true; 
+        }
+
+    }
+    void Cancel() => MudDialog.Cancel();
+
+    private void Close()
+    {
+        showAlert = false;
+    }
+}
